@@ -1,0 +1,17 @@
+{
+    "name": "wcurtis/jira-cli",
+    "authors": [
+        {
+            "name": "Wesley Curtis",
+            "email": "wtcurtis@gmail.com"
+        }
+    ],
+    "require": {
+        "symfony/console": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "WCurtis\\": "src/"
+        }
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "chmod": "0775",
+    "directories": [
+        "src",
+        "vendor"
+    ],
+    "git-version": "package_version",
+    "main": "bin/jira.php",
+    "output": "jira.phar",
+    "stub": true
+}
