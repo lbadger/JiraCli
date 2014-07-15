@@ -1,7 +1,18 @@
 Simple CLI for JIRA
 ===================
+## Installation
 
-## Time issues you're working on, and add a worklog directly to JIRA:
+As usual, first, `composer install`.
+
+Then, If you have [https://github.com/kherge/php-box](Box) installed, awesome. Go to the root, type `box build`, grab the jira.phar and do something interesting with it (I just throw it in /usr/local/bin/jira).
+
+If not, well, I guess you could set up an alias or something.
+
+No idea if this'll work on Windows. It's at least possible.
+
+## Usage
+
+#### Time issues you're working on, and add a worklog directly to JIRA:
 
 Start a timer on issue NEX-343:
 
@@ -35,7 +46,7 @@ Destroy the timer on NEX-343
 
     jira timer:kill NEX-343
 
-## Just add worklogs directly without worrying about the timer:
+#### Just add worklogs directly without worrying about the timer:
 
 Add a worklog to NEX-343 for today
 
@@ -45,7 +56,7 @@ Same deal, but on 2014-07-11 instead of today
 
     jira log:add NEX-343 "1h 45m" "Did some stuff" --date=2014-07-11
 
-## List worklogs on some issue:
+#### List worklogs on some issue:
 
 List your worklogs on an issue
 
@@ -55,7 +66,7 @@ List all the worklogs on an issue, not just your own
 
     jira log:list NEX-343 --notjustme
    
-## Add / read comments on issues 
+#### Add / read comments on issues 
 
 Visibility is set up in your config, and defaults to Developers. *Comments without a specific visibility are not yet implemented.*
  
@@ -71,7 +82,7 @@ Add a comment to an issue with some other visibility:
 
     jira comment:add NEX-343 "Comment body here" --visibility=role.SomeRole
 
-## List issues according to your favorite filters defined in JIRA
+#### List issues according to your favorite filters defined in JIRA
 
 List your favorite filters
 
