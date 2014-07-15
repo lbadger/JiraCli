@@ -2,6 +2,7 @@
 namespace WCurtis\Command;
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -30,9 +31,15 @@ class StopTimerCommand extends Command {
             ->addOption(
                 'round',
                 'r',
-                InputOption::VALUE_OPTIONAL,
-                'Round to the nearest 15, or number provided, minutes',
-                false
+                InputOption::VALUE_REQUIRED,
+                'Number of minutes to round to, when noround is not passed',
+                15
+            )
+            ->addOption(
+                'noround',
+                'd',
+                InputOption::VALUE_NONE,
+                'Don\'t round the time'
             )
             ->addOption(
                 'message',
@@ -65,29 +72,28 @@ class StopTimerCommand extends Command {
             $timer->StopTimer($issue, $now);
         } else $timer->StopTimer($issue, $now);
 
-        $output->writeLn("Set stop time to " . $timer->GetStopTime($issue)->format('Y-m-d H:i:s'));
+        $elapsed = $timer->GetElapsed($issue, false);
+
+        $output->writeLn("$elapsed minute(s) tracked.");
 
         $send = $input->getOption('send');
 
         if($send) {
             $round = $input->getOption('round');
-
-            $round = (int)($round === false ? 0 : $round);
-
-
             $message = $input->getOption('message');
+            $noround = $input->getOption('noround');
 
-            if(!$message) throw new \Exception("Message is required when sending a worklog");
+            $args = [
+                'command' => 'timer:log',
+                'issue' => $issue,
+                '--message' => $message,
+                '--round' => $round,
+            ];
 
-            $jiraCli = Config::GetJiraCliFromConfig();
+            if($noround) $args['--noround'] = true;
 
-            $elapsed = $timer->GetElapsed($issue, !!$round, $round);
-
-            $jiraCli->AddWorklog($issue, $timer->GetStartTime($issue), $message, $elapsed);
-
-            $timer->ClearTimer($issue);
-
-            $output->writeLn("\nDone, $elapsed minutes logged to $issue");
+            $command = $this->getApplication()->find('timer:log');
+            $command->run(new ArrayInput($args), $output);
         }
     }
 }

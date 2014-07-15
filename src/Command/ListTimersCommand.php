@@ -6,7 +6,7 @@ use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use WCurtis\Timer\FileTimer;
-
+use WCurtis\Util;
 
 class ListTimersCommand extends Command {
     protected function configure() {
@@ -18,20 +18,16 @@ class ListTimersCommand extends Command {
         $timer = new FileTimer();
 
         $data = $timer->getCurrentData();
-        $table = new Table($output);
-        $table->setHeaders(['name', 'start', 'stop']);
 
-        $rows = [];
-
-        foreach($data as $key => $times) {
-            $rows[] = [
-                $key,
-                $times['start'],
-                $times['stop']
+        $rows = Util::DictMap($data, function($k, $v) {
+            return [
+                'name' => $k,
+                'start' => $v['start'],
+                'stop' => $v['stop']
             ];
-        }
+        });
 
-        $table->setRows($rows);
-        $table->render();
+        Util::RenderTable($rows, $output);
+
     }
 }

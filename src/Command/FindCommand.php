@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use WCurtis\Config;
 use WCurtis\JiraCli;
+use WCurtis\Util;
 
 class FindCommand extends Command{
     /** @var OutputInterface */
@@ -73,31 +74,16 @@ class FindCommand extends Command{
         $jiraCli = Config::GetJiraCliFromConfig();
 
         $issues = $jiraCli->RunJql($jql);
-        $table = new Table($this->output);
-        $table->setHeaders(array_keys(JiraCli::$issueMap));
 
-        $rows = array_map(function($f) {
-            return array_values($f);
-        }, $issues);
-
-        $table->setRows($rows);
-        $table->render();
+        Util::RenderTable($issues, $this->output);
     }
 
     protected function runFilter($filterId) {
         $jiraCli = Config::GetJiraCliFromConfig();
 
         $issues = $jiraCli->RunFilter($filterId);
-        $table = new Table($this->output);
-        $table->setHeaders(array_keys(JiraCli::$issueMap));
 
-
-        $rows = array_map(function($f) {
-            return array_values($f);
-        }, $issues);
-
-        $table->setRows($rows);
-        $table->render();
+        Util::RenderTable($issues, $this->output);
     }
 
     protected function listFilters() {
@@ -105,15 +91,6 @@ class FindCommand extends Command{
 
         $filters = $jiraCli->GetFilters();
 
-        $table = new Table($this->output);
-        $table->setHeaders(['id', 'name', 'jql']);
-
-        $rows = array_map(function($f) {
-            return [$f['id'], $f['name'], $f['jql']];
-        }, $filters);
-
-        $table->setRows($rows);
-
-        $table->render();
+        Util::RenderTable($filters, $this->output);
     }
 }

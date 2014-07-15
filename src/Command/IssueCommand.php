@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use WCurtis\Config;
 use WCurtis\JiraCli;
+use WCurtis\Util;
 
 class IssueCommand extends Command {
     protected function configure() {
@@ -27,14 +28,6 @@ class IssueCommand extends Command {
 
         $result = $jiraCli->RunJql("key = '$issue'");
 
-        $table = new Table($output);
-        $table->setHeaders(array_keys(JiraCli::$issueMap));
-
-        $table->setRows(array_map(function($r) {
-            return array_values($r);
-        }, $result));
-
-        $table->render();
+        Util::RenderTable($result, $output);
     }
-
-} 
+}

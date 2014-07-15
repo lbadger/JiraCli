@@ -8,6 +8,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\Table;
 use WCurtis\Config;
+use WCurtis\Util;
 
 class LogListCommand extends Command {
 
@@ -33,10 +34,6 @@ class LogListCommand extends Command {
 
         $jiraCli = Config::GetJiraCliFromConfig();
 
-        $table = new Table($output);
-        $table->setHeaders(['id', 'timeSpent', 'comment', 'started'])
-            ->setRows($jiraCli->GetWorklogs($issue, $onlyMe));
-
-        $table->render();
+        Util::RenderTable($jiraCli->GetWorklogs($issue, $onlyMe), $output);
     }
 }

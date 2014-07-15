@@ -1,6 +1,9 @@
 <?php
 namespace WCurtis;
 
+use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Output\OutputInterface;
+
 class Util {
     public static function EndsWith($haystack, $needle) {
         $length = strlen($needle);
@@ -68,5 +71,53 @@ class Util {
         }
 
         return $newArray;
+    }
+
+    public static function DictMap($array, $callable) {
+        $newArray = [];
+
+        foreach($array as $key => $value) {
+            $newArray[] = $callable($key, $value);
+        }
+
+        return $newArray;
+    }
+
+    public static function DictToDict($array, $callable) {
+        $newArray = [];
+
+        foreach($array as $key => $value) {
+            list($newKey, $newValue) = $callable($key, $value);
+
+            $newArray[$newKey] = $newValue;
+        }
+
+        return $newArray;
+    }
+
+    public static function WrapForTable($text) {
+        return wordwrap(str_replace("\r", '', $text), 70, "\n");
+    }
+
+    public static function RenderTable($rows, OutputInterface $output) {
+        if(count($rows) === 0) {
+            $output->WriteLn("No records found.");
+            return false;
+        }
+
+        $table = new Table($output);
+
+        $table->setHeaders(array_keys(reset($rows)));
+
+        $rows = array_map(function($f) {
+                return array_values($f);
+            }, $rows);
+
+
+        $table->setRows($rows);
+        $table->render();
+
+        return true;
+
     }
 }

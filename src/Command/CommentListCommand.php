@@ -8,6 +8,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\Table;
 use WCurtis\Config;
 use WCurtis\JiraCli;
+use WCurtis\Util;
 
 class CommentListCommand extends Command {
     protected function configure() {
@@ -27,14 +28,6 @@ class CommentListCommand extends Command {
 
         $comments = $jiraCli->ListComments($issue);
 
-        $table = new Table($output);
-        $table->setHeaders(array_keys(JiraCli::$commentMap));
-
-        $rows = array_map(function($f) {
-            return array_values($f);
-        }, $comments);
-
-        $table->setRows($rows);
-        $table->render();
+        Util::RenderTable($comments, $output);
     }
 }

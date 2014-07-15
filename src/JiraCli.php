@@ -8,12 +8,14 @@
 
 namespace WCurtis;
 
+//use WCurtis\Map\Maps;
 use WCurtis\Jira\JiraUtil;
 use WCurtis\Timer\TimerAbstract;
 
 class JiraCli {
     protected $jira;
     protected $maxIssues = 50;
+    protected $map;
 
     protected $filters;
 
@@ -22,6 +24,7 @@ class JiraCli {
     public function __construct(JiraUtil $jira, TimerAbstract $timer) {
         $this->jira = $jira;
         $this->timer = $timer;
+        $this->map = new \WCurtis\Map\Maps();
     }
 
     public function GetTimer() {
@@ -39,37 +42,6 @@ class JiraCli {
         return $this->filters;
     }
 
-    public static $issueMap = [
-        'id' => 'id',
-        'key' => 'key',
-        'summary' => 'fields.summary',
-        'description' => 'fields.description',
-        'issuetype' => 'fields.issuetype.name'
-    ];
-
-    protected function mapThing($thing, $map, $wrap = true) {
-        $newThing = [];
-
-        foreach($map as $key => $value) {
-            $newValue = Util::GetFromArray($thing, $value);
-
-            $newValue = $wrap 
-                ? wordwrap(str_replace("\r", '', $newValue), 70, "\n", true)
-                : $newValue;
-
-            $newThing[$key] = $newValue;
-        }
-
-        return $newThing;
-    }
-
-    protected function mapIssues($jiraSearchResult) {
-        return array_map(
-            function($i) { return $this->mapThing($i, self::$issueMap, true); },
-            $jiraSearchResult['issues']
-        );
-    }
-
     public function RunJql($jql) {
         $result = $this->jira->Search(
             $jql,
@@ -78,7 +50,7 @@ class JiraCli {
             $this->issueFields
         );
 
-        return $this->mapIssues($result);
+        return $this->map->MapArray('issues', $result['issues']);
     }
 
     public function RunFilter($filter) {
@@ -110,21 +82,19 @@ class JiraCli {
         return $seconds / self::$unitDividers[$unit];
     }
 
+
     public function GetWorklogs($issue, $onlyMe = true) {
         $url = $this->jira->getEndpoint(['issue', $issue, 'worklog']);
         $result = $this->jira->HttpGet($url);
         $me = $this->jira->GetUsername();
 
-        return array_filter(array_map(function($w) use ($onlyMe, $me) {
-            $author = Util::getFromArray($w, 'author.name');
-            if($onlyMe && $author !== $me) return null;
-            return [
-                'id' => $w['id'],
-                'timeSpent' => $w['timeSpent'],
-                'comment' => $w['comment'],
-                'date' => Config::GetDate($w['started'])->format('Y-m-d')
-            ];
-        }, $result['worklogs']));
+        $logs = $this->map->MapArray('worklogs', $result['worklogs']);
+
+        return $onlyMe
+            ? array_filter($logs, function($w) use ($onlyMe, $me) {
+                return !($onlyMe && Util::getFromArray($w, 'author') !== $me);
+            })
+            : $logs;
     }
 
     public function AddWorklog($issue, \DateTime $started, $comment, $time, $sendTimeUnparsed = false) {
@@ -142,23 +112,11 @@ class JiraCli {
         return $this->jira->HttpPost($url, json_encode($worklog));
     }
 
-    public static $commentMap = [
-        'id' => 'id',
-        'author' => 'author.name',
-        'body' => 'body',
-        'updateAuthor' => 'updateAuthor.name',
-        'visType' => 'visibility.type',
-        'visValue' => 'visibility.value',
-    ];
-
     public function ListComments($issue) {
         $url = $this->jira->getEndpoint(['issue', $issue, 'comment']);
-
         $result = $this->jira->HttpGet($url);
 
-        return array_map(function($c) {
-            return $this->mapThing($c, self::$commentMap);
-        }, $result['comments']);
+        return $this->map->MapArray('comments', $result['comments']);
     }
 
     protected static function parseVisibility($vis) {
