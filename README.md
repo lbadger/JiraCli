@@ -4,7 +4,7 @@ Simple CLI for JIRA
 
 As usual, first, `composer install`.
 
-Then, If you have [https://github.com/kherge/php-box](Box) installed, awesome. Go to the root,
+Then, If you have [Box](https://github.com/kherge/php-box) installed, awesome. Go to the root,
 type `box build`, grab the jira.phar and do something interesting with it (I just throw it in
 /usr/local/bin/jira).
 
