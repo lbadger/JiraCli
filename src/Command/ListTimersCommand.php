@@ -22,8 +22,9 @@ class ListTimersCommand extends Command {
         $rows = Util::DictMap($data, function($k, $v) {
             return [
                 'name' => $k,
-                'start' => $v['start'],
-                'stop' => $v['stop']
+                'start' => Util::GetFromArray($v, 'start'),
+                'stop' => Util::GetFromArray($v, 'stop'),
+                'previousElapsed' => Util::GetFromArray($v, 'elapsed', false, 0) . 'm'
             ];
         });
 

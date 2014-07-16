@@ -56,5 +56,14 @@ return [
             'field' => 'jql',
             'callable' => ['WCurtis\\Util', 'WrapForTable']
         ]
+    ],
+
+    'attachment' => [
+        'id' => 'id',
+        'filename' => 'filename',
+        'author' => 'author.name',
+        'content' => 'content',
+        'size' => 'size',
+        'mimeType' => 'mimeType'
     ]
 ];
