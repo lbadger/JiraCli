@@ -34,10 +34,13 @@ abstract class TimerAbstract {
 
     public abstract function getCurrentData();
     public abstract function GetStartTime($name);
-    public abstract function SetStartTime($name, \DateTime $dt);
     public abstract function GetStopTime($name);
-    public abstract function SetStopTime($name, \DateTime $dt);
     public abstract function ClearTimer($name);
+
+    protected abstract function SetStartTime($name, \DateTime $dt);
+    protected abstract function SetStopTime($name, \DateTime $dt);
+    protected abstract function SetTimeElapsed($name, $minutes);
+    protected abstract function GetTimeElapsed($name);
 
     public function StartTimer($name, $dt = null) {
         $dt = ($dt === null || !($dt instanceof \DateTime))
@@ -63,6 +66,12 @@ abstract class TimerAbstract {
             : $dt;
 
         $this->SetStopTime($name, $dt);
+
+        $elapsed = $this->GetElapsed($name, false);
+
+        $this->ClearTimer($name);
+
+        $this->SetTimeElapsed($name, $elapsed);
     }
 
     protected function RoundMinutes($seconds, $roundMinutes) {
@@ -75,12 +84,16 @@ abstract class TimerAbstract {
         $startTime = $this->GetStartTime($name);
         $stopTime = $this->GetStopTime($name);
 
-        if(!$startTime || !$stopTime) throw new \Exception("Either no start or stop time");
+        $previousElapsed = $this->GetTimeElapsed($name);
 
-        $startTs = (int)$startTime->format('U');
-        $stopTs = (int)$stopTime->format('U');
+        if($startTime && $stopTime) {
+            $startTs = (int)$startTime->format('U');
+            $stopTs = (int)$stopTime->format('U');
 
-        $seconds = $stopTs - $startTs;
+            $seconds = $stopTs - $startTs;
+        } else $seconds = 0;
+
+        $seconds += ($previousElapsed * 60);
 
         if($round) return $this->RoundMinutes($seconds, $roundMinutes);
         else return ceil($seconds / 60);

@@ -47,4 +47,13 @@ return [
         ],
         'issuetype' => 'fields.issuetype.name'
     ],
+
+    'attachment' => [
+        'id' => 'id',
+        'filename' => 'filename',
+        'author' => 'author.name',
+        'content' => 'content',
+        'size' => 'size',
+        'mimeType' => 'mimeType'
+    ]
 ];

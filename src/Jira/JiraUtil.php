@@ -43,12 +43,14 @@ class JiraUtil
         return $datetime->format('Y-m-d\TH:i:s.000O');
     }
 
-    protected static function getDefaultHeaders($type = 'GET')
+    protected static function getDefaultHeaders($type = 'GET', $excludeHeaders = [])
     {
-        $headers = array(
-            'Accept' => 'application/json',
-        );
-        if ($type == 'POST' || $type == 'PUT') {
+        $headers = [];
+
+        if(!in_array('Accept', $excludeHeaders)) {
+            $headers['Accept'] = 'application/json';
+        }
+        if (($type == 'POST' || $type == 'PUT') && !in_array('Content-Type', $excludeHeaders)) {
             $headers['Content-Type'] = 'application/json';
         }
 
@@ -84,10 +86,10 @@ class JiraUtil
         return $this->baseEndpoint . '/' . implode('/', $path);
     }
 
-    public function HttpGet($url, $params = array(), $header = array())
+    public function HttpGet($url, $params = array(), $header = array(), $excludeHeaders = [], $parse = true)
     {
         $options = $this->getRequestOptions();
-        $header = array_merge(self::getDefaultHeaders(), $header);
+        $header = array_merge(self::getDefaultHeaders('GET', $excludeHeaders), $header);
 
         $response = $this->httpClient->read($url, $params, $header, $options);
 
@@ -95,16 +97,18 @@ class JiraUtil
             throw new HttpException("Error during HttpGet: " . Util::GetFromArray($response, 'data'), $response);
         }
 
-        return json_decode($response['data'], true);
+        return $parse
+            ? json_decode($response['data'], true)
+            : $response;
     }
 
-    public function HttpPost($url, $postData, $header = array())
+    public function HttpPost($url, $postData, $header = array(), $options = [])
     {
         if (!is_string($postData)) {
             $postData = json_encode($postData);
         }
 
-        $options = $this->getRequestOptions();
+        $options = array_merge($options, $this->getRequestOptions());
 
         $header = array_merge(self::getDefaultHeaders('POST'), $header);
 
@@ -156,5 +160,26 @@ class JiraUtil
 
     public function GetUsername() {
         return $this->username;
+    }
+
+    public function Attach($filename, $issue) {
+        $url = $this->getEndpoint(['issue', $issue, 'attachments']);
+
+        $response = $this->HttpPost($url, '', [], [
+            'file' => $filename
+        ]);
+
+        $decoded = json_decode($response['data'], true);
+
+        return empty($decoded) ? [] : $decoded[0];
+    }
+
+    public function GetIssue($issue, $fields = []) {
+        $url = $this->getEndpoint(['issue', $issue]);
+        $params = [
+            'fields' => empty($fields) ? '*all' : implode(',', $fields)
+        ];
+
+        return $this->HttpGet($url, $params);
     }
 }

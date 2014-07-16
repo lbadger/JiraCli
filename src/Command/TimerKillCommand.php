@@ -22,9 +22,9 @@ class TimerKillCommand extends Command {
         $issue = $input->getArgument('issue');
         $timer = new FileTimer();
 
-        $start = $timer->GetStartTime($issue);
+        $data = $timer->getCurrentData();
 
-        if(!$start) {
+        if(!isset($data[$issue])) {
             $output->writeLn("No timer for issue $issue");
             return;
         }

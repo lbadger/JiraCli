@@ -145,4 +145,44 @@ class JiraCli {
 
         return $this->jira->HttpPost($url, json_encode($comment));
     }
+
+    public function Attach($filename, $issue) {
+        if(!is_file($filename)) throw new \Exception("Cannot find file $filename");
+
+        $response = $this->jira->Attach($filename, $issue);
+
+        return $this->map->MapThing('attachment', $response);
+    }
+
+    public function ListAttachments($issue) {
+        $issue = $this->jira->GetIssue($issue, ['attachment']);
+
+        return $this->map->MapArray('attachment', Util::GetFromArray($issue, 'fields.attachment', false, []));
+    }
+
+    public function GetAttachment($id, $outgoingPath) {
+        $url = $this->jira->getEndpoint(['attachment', $id]);
+
+        $attachMeta = $this->jira->HttpGet($url);
+        $attachUrl = Util::GetFromArray($attachMeta, 'content');
+
+        if(!$attachUrl) return false;
+
+        $response = $this->jira->HttpGet($attachUrl, [], [], ['Accept'], false);
+
+        $filename = Util::GetFromArray($attachMeta, 'filename');
+
+        if(!$filename) throw new \Exception("no filename in attachment");
+        if(strpos($filename, '/') !== false) throw new \Exception("Filename is messed up, contains slash(es), bailing out");
+
+        $path = Util::joinPaths($outgoingPath, $filename);
+
+        if(is_file($path) || is_dir($path)) throw new \Exception("Something already exists at $path, bailing out.");
+
+        if(!is_writable($path)) throw new \Exception("$path is not writable");
+
+        file_put_contents($path, $response['data']);
+
+        return $path;
+    }
 }

@@ -31,7 +31,6 @@ class CurlClient extends HttpClient {
     }
 
     protected function initCurl($url, $type = 'GET', $params = array(), $headers=array(), $postData='', $options=array()) {
-        $headers = self::normalizeHeaders($headers);
 
         $qMark = (strpos($url, '?') === false ? '?' : '&');
 
@@ -42,7 +41,6 @@ class CurlClient extends HttpClient {
 
         curl_setopt($session, CURLOPT_RETURNTRANSFER, 1);
 
-        if(!empty($headers)) curl_setopt($session, CURLOPT_HTTPHEADER, $headers);
 
         if($type === 'POST') {
             curl_setopt($session, CURLOPT_POST, 1);
@@ -54,21 +52,57 @@ class CurlClient extends HttpClient {
             curl_setopt($session, CURLOPT_CUSTOMREQUEST, "DELETE");
         }
 
-        $this->HandleOptions($session, $options);
+        $extraHeaders = $this->HandleOptions($session, $options);
+
+        $headers = array_merge($headers, $extraHeaders);
+
+        $headers = self::normalizeHeaders($headers);
+
+        if(!empty($headers)) {
+            curl_setopt($session, CURLOPT_HTTPHEADER, $headers);
+        }
 
         return $session;
     }
 
     protected function HandleOptions($session, $options) {
+        $headers = [];
+
         if(!empty($options['auth'])) {
-            $this->HandleAuth($session, $options['auth']);
+            $extraHeaders = $this->HandleAuth($session, $options['auth']);
+            $headers = array_merge($headers, $extraHeaders);
         }
+
+        if(!empty($options['file'])) {
+            $extraHeaders = $this->HandleFile($session, $options['file']);
+            $headers = array_merge($headers, $extraHeaders);
+        }
+
+        return $headers;
     }
 
     protected function HandleAuth($session, $options) {
         if(isset($options['username']) && isset($options['password'])) {
             curl_setopt($session, CURLOPT_USERPWD, self::GetUserAuth($options['username'], $options['password']));
         }
+
+        return [];
+    }
+
+    protected function HandleFile($session, $options) {
+        if(!is_string($options)) return [];
+        $path = '@' . realpath($options);
+        $filename = basename($options);
+
+        curl_setopt($session, CURLOPT_POSTFIELDS, [
+            'file' => $path . ';filename=' . $filename,
+            //'filename' => $filename//. '; filename=' . $filename
+        ]);
+
+        return [
+            'Content-Type' => 'multipart/form-data',
+            'X-Atlassian-Token' => 'nocheck'
+        ];
     }
 
     protected function ParseHttpResponse($session, $response) {

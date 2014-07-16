@@ -8,6 +8,9 @@ $app = new Application('jira-cli', '@package_version@');
 
 $commandNamespace = 'WCurtis\\Command\\';
 
+/** This is pretty dirty, but it works for now. Glob all the files in the Command namespace,
+ * instantiate and add to the $app.
+ */
 $files = glob(__DIR__ . '/../src/Command/*Command.php');
 
 foreach($files as $file) {

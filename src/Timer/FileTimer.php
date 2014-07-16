@@ -37,30 +37,30 @@ class FileTimer extends TimerAbstract {
         return self::getDate(Util::getFromArray($data, [$name, 'start']));
     }
 
-    public function SetStartTime($name, \DateTime $dt)
-    {
-        $data = $this->getCurrentData();
-        if(!isset($data[$name])) $data[$name] = [];
-
-        $data[$name]['start'] = $dt->format('Y-m-d H:i:s');;
-
-        $this->setData($data);
-
-        return $this;
-    }
-
     public function GetStopTime($name)
     {
         $data = $this->getCurrentData();
         return self::getDate(Util::getFromArray($data, [$name, 'stop']));
     }
 
-    public function SetStopTime($name, \DateTime $dt)
+    protected function SetStopTime($name, \DateTime $dt)
     {
         $data = $this->getCurrentData();
         if(!isset($data[$name])) $data[$name] = [];
 
-        $data[$name]['stop'] = $dt->format('Y-m-d H:i:s');;
+        $data[$name]['stop'] = $dt->format('Y-m-d H:i:s');
+
+        $this->setData($data);
+
+        return $this;
+    }
+
+    protected function SetStartTime($name, \DateTime $dt)
+    {
+        $data = $this->getCurrentData();
+        if(!isset($data[$name])) $data[$name] = [];
+
+        $data[$name]['start'] = $dt->format('Y-m-d H:i:s');
 
         $this->setData($data);
 
@@ -72,5 +72,22 @@ class FileTimer extends TimerAbstract {
         if(isset($data[$name])) unset($data[$name]);
 
         $this->setData($data);
+    }
+
+    protected function SetTimeElapsed($name, $minutes) {
+        $data = $this->getCurrentData();
+        if(!isset($data[$name])) $data[$name] = [];
+
+        $data[$name]['elapsed'] = $minutes;
+
+        $this->setData($data);
+    }
+
+    protected function GetTimeElapsed($name) {
+        $data = $this->getCurrentData();
+
+        return isset($data[$name]['elapsed'])
+            ? $data[$name]['elapsed']
+            : 0;
     }
 }
