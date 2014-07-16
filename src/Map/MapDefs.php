@@ -45,6 +45,16 @@ return [
             'field' => 'fields.description',
             'callable' => ['WCurtis\\Util', 'WrapForTable']
         ],
-        'issuetype' => 'fields.issuetype.name'
+        'issuetype' => 'fields.issuetype.name',
+        'status' => 'fields.status.name'
     ],
+
+    'filters' => [
+        'id' => 'id',
+        'name' => 'name',
+        'jql' => [
+            'field' => 'jql',
+            'callable' => ['WCurtis\\Util', 'WrapForTable']
+        ]
+    ]
 ];

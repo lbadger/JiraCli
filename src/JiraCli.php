@@ -19,7 +19,7 @@ class JiraCli {
 
     protected $filters;
 
-    protected $issueFields = ['summary', 'issuetype', 'description'];
+    protected $issueFields = ['summary', 'issuetype', 'description', 'status'];
 
     public function __construct(JiraUtil $jira, TimerAbstract $timer) {
         $this->jira = $jira;
@@ -35,9 +35,7 @@ class JiraCli {
         if(!$force && $this->filters) return $this->filters;
 
         $filters = $this->jira->GetFavoriteFilters();
-        $this->filters = Util::toDict($filters, function($f) {
-            return [$f['id'], $f];
-        });
+        $this->filters = $this->map->MapArray('filters', $filters);
 
         return $this->filters;
     }
@@ -55,7 +53,19 @@ class JiraCli {
 
     public function RunFilter($filter) {
         if(!$this->filters) $this->GetFilters();
-        if(is_string($filter) || is_int($filter)) $filter = $this->filters[$filter];
+
+        if(is_string($filter) || is_int($filter)) {
+            $found = false;
+            foreach($this->filters as $exFilter) {
+                if($filter === Util::GetFromArray($exFilter, 'id')) {
+                    $filter = $exFilter;
+                    $found = true;
+                    break;
+                }
+            }
+
+            if(!$found) throw new \Exception("No such filter: $filter");
+        }
 
         return $this->RunJql($filter['jql']);
     }
